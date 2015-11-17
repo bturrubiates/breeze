@@ -104,17 +104,8 @@ func (pushError *PushError) Error() string {
 		strings.Join(errors[:], ","))
 }
 
-func (pushContext *PushContext) validatePushContext(device string) (bool, error) {
-	parameters := url.Values{}
-
-	parameters.Add("token", pushContext.AppToken)
-	parameters.Add("user", pushContext.UserKey)
-
-	if device != "" {
-		parameters.Add("device", device)
-	}
-
-	response, err := http.PostForm(validateURL, parameters)
+func (pushContext *PushContext) push(url string, values url.Values) (bool, error) {
+	response, err := http.PostForm(url, values)
 	if err != nil {
 		fmt.Println("Handle the error case.")
 	}
@@ -132,6 +123,19 @@ func (pushContext *PushContext) validatePushContext(device string) (bool, error)
 	}
 
 	return success, nil
+}
+
+func (pushContext *PushContext) validatePushContext(device string) (bool, error) {
+	parameters := url.Values{}
+
+	parameters.Add("token", pushContext.AppToken)
+	parameters.Add("user", pushContext.UserKey)
+
+	if device != "" {
+		parameters.Add("device", device)
+	}
+
+	return pushContext.push(validateURL, parameters)
 }
 
 // NewPushContext is the primary interface for receiving a new PushContext
