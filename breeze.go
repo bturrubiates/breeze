@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -123,6 +124,53 @@ func (pushContext *PushContext) push(url string, values url.Values) (bool, error
 	}
 
 	return success, nil
+}
+
+func (pushContext *PushContext) Push(message *Message) (bool, error) {
+	parameters := url.Values{}
+
+	parameters.Add("token", pushContext.AppToken)
+	parameters.Add("user", pushContext.UserKey)
+
+	if message.Device != "" {
+		ok, err := pushContext.validatePushContext(message.Device)
+		if !ok {
+			return ok, err
+		}
+
+		parameters.Add("device", message.Device)
+	}
+
+	parameters.Add("message", message.Message)
+
+	if message.Title != "" {
+		parameters.Add("title", message.Title)
+	}
+
+	if message.URL != "" {
+		parameters.Add("url", message.URL)
+	}
+
+	if message.URLTitle != "" {
+		parameters.Add("url_title", message.URLTitle)
+	}
+
+	parameters.Add("priority", strconv.Itoa(message.Priority))
+
+	if message.Priority == Emergency {
+		parameters.Add("retry", strconv.Itoa(message.Retry))
+		parameters.Add("expire", strconv.Itoa(message.Expire))
+	}
+
+	if message.Timestamp != 0 {
+		parameters.Add("timestamp", strconv.FormatInt(message.Timestamp, 10))
+	}
+
+	if message.Sound != "" {
+		parameters.Add("sound", message.Sound)
+	}
+
+	return pushContext.push(pushURL, parameters)
 }
 
 func (pushContext *PushContext) validatePushContext(device string) (bool, error) {
