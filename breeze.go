@@ -154,5 +154,57 @@ func NewPushContext(appToken string, userKey string) (*PushContext, error) {
 	return pushContext, nil
 }
 
+func NewMessage(msg string) *Message {
+	var message = new(Message)
+
+	message.Message = msg
+	return message
+}
+
+func (message *Message) AddTitle(title string) *Message {
+	message.Title = title
+	return message
+}
+
+func (message *Message) AddURL(url string) *Message {
+	message.URL = url
+	return message
+}
+
+func (message *Message) AddURLTitle(title string) *Message {
+	message.URLTitle = title
+	return message
+}
+
+func (message *Message) AddPriority(priority int) *Message {
+	message.Priority = priority
+	return message
+}
+
+func (message *Message) AddRetry(retry int) *Message {
+	message.Retry = retry
+	return message
+}
+
+func (message *Message) AddExpire(expire int) *Message {
+	message.Expire = expire
+	return message
+}
+
+func (message *Message) AddTimestamp(timestamp int64) *Message {
+	message.Timestamp = timestamp
+	return message
+}
+
+func (message *Message) AddSound(sound string) *Message {
+	message.Sound = sound
+	return message
+}
+
+func (message *Message) AddDevice(device string) *Message {
+	message.Device = device
+	return message
+}
+
 func main() {
 }
