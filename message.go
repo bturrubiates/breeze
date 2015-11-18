@@ -91,51 +91,87 @@ func (message *Message) addValues(values url.Values) {
 	}
 }
 
+// AddTitle can be used to add a title to a message. The title is limited to a
+// maximum length of MaxTitleSize, and will be verified before sending.
+// TODO: Verify that the length is less than MaxTitleSize.
 func (message *Message) AddTitle(title string) *Message {
 	message.title = title
 	return message
 }
 
+// AddURL can be used to add a URL to a message. The URL is limited to a maximum
+// length of MaxSuppURLLen, and will be verified before sending.
+// TODO: Verify that the length is less than MaxSuppURLLen.
 func (message *Message) AddURL(url string) *Message {
 	message.url = url
 	return message
 }
 
+// AddURLTitle can be used to add a url title. The url title is limited to a
+// maximum length of MaxSuppURLTitle, and will be verified before sending.
+// TODO: Verify that the length is less than MaxSuppURLTitle.
 func (message *Message) AddURLTitle(title string) *Message {
 	message.urlTitle = title
 	return message
 }
 
+// AddPriority can be used to associate a priority with the message. The
+// priority is limited to Lowest, Low, Normal, High, and Emergency. The default
+// is Normal. If Emergency is set, then retry and expire must also be provided.
+// TODO: Verify that retry and expire are provided.
 func (message *Message) AddPriority(priority int) *Message {
 	message.priority = priority
 	return message
 }
 
+// AddRetry can be used to establish an associated retry time and is only
+// important when the message is sent with Emergency priority. The retry time
+// dictates how many seconds the API will wait before re-pushing the message.
+// The value is expressed in seconds. This value must be at least 30 seconds.
+// TODO: Verify retry time is less than 30 seconds.
 func (message *Message) AddRetry(retry int) *Message {
 	message.retry = retry
 	return message
 }
 
+// AddExpire can be used to establish an associated expire time and is only
+// important when the message is sent with Emergency priority. The expire time
+// determines the length of the window in which the API will attempt retries.
+// The value is expressed in seconds. This value must be at most 86,400 seconds.
+// TODO: Verify expire time is less than 86,400.
 func (message *Message) AddExpire(expire int) *Message {
 	message.expire = expire
 	return message
 }
 
+// AddTimestamp can be used to associate a time stamp with a message. The
+// timestamp expresses the time that the Pushover API received the push request.
+// The timestamp given will be reflected in the receiving application. This
+// value is expressed in epoch time.
 func (message *Message) AddTimestamp(timestamp int64) *Message {
 	message.timestamp = timestamp
 	return message
 }
 
+// AddSound can be used to associate a sound with a message. The options are:
+// pushover, bike, bugle, cashregister, classical, cosmic, falling, gamelan,
+// incoming, intermission, magic, mechanical, pianobar, siren, spacealarm,
+// tugboat, alien, climb, persistent, echo, updown, none.
+// TODO: Verify sound is one of the above.
 func (message *Message) AddSound(sound string) *Message {
 	message.sound = sound
 	return message
 }
 
+// AddDevice can be used to filter which device the message gets sent to. This
+// will be validated using the Pushover API before the message is sent.
 func (message *Message) AddDevice(device string) *Message {
 	message.device = device
 	return message
 }
 
+// NewMessage is the primary interface for receiving a new Message struct that
+// can be given to the Push function of a PushContext.
 func NewMessage(msg string) *Message {
 	var message = new(Message)
 
