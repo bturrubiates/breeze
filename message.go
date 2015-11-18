@@ -29,6 +29,11 @@ const (
 )
 
 const (
+	minRetryTime  = 30
+	maxExpireTime = 86400
+)
+
+const (
 	// MaxTitleLen defines the maximum size of a message title as defined by the
 	// Pushover API.
 	MaxTitleLen = 250
