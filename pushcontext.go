@@ -78,6 +78,18 @@ func (pushContext *PushContext) addValues(values url.Values) {
 func (pushContext *PushContext) Push(message *Message) (bool, error) {
 	parameters := url.Values{}
 
+	ok, err := message.validateMessage()
+	if !ok {
+		return ok, err
+	}
+
+	if message.device != "" {
+		ok, err := pushContext.validatePushContext(message.device)
+		if !ok {
+			return ok, err
+		}
+	}
+
 	pushContext.addValues(parameters)
 	message.addValues(parameters)
 
