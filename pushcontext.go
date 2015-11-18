@@ -73,6 +73,8 @@ func (pushContext *PushContext) addValues(values url.Values) {
 	values.Add("user", pushContext.userKey)
 }
 
+// Push will use the Pushover API to push the given message using the given push
+// context.
 func (pushContext *PushContext) Push(message *Message) (bool, error) {
 	parameters := url.Values{}
 
