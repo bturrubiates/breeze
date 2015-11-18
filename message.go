@@ -29,17 +29,17 @@ const (
 )
 
 const (
-	// MaxTitleSize defines the maximum size of a message title as defined by the
+	// MaxTitleLen defines the maximum size of a message title as defined by the
 	// Pushover API.
-	MaxTitleSize = 250
+	MaxTitleLen = 250
 
 	// MaxMessageLen defines the maximum length of a message as defined by the
 	// Pushover API.
 	MaxMessageLen = 1024
 
-	// MaxSuppURLTitle defines the maximum length of a supplementary URL title as
-	// defined by the Pushover API.
-	MaxSuppURLTitle = 100
+	// MaxSuppURLTitleLen defines the maximum length of a supplementary URL title
+	// as defined by the Pushover API.
+	MaxSuppURLTitleLen = 100
 
 	// MaxSuppURLLen defined the maximum legnth of the supplementary URL as
 	// defined by the Pushover API.
@@ -92,8 +92,8 @@ func (message *Message) addValues(values url.Values) {
 }
 
 // AddTitle can be used to add a title to a message. The title is limited to a
-// maximum length of MaxTitleSize, and will be verified before sending.
-// TODO: Verify that the length is less than MaxTitleSize.
+// maximum length of MaxTitleLen, and will be verified before sending.
+// TODO: Verify that the length is less than MaxTitleLen.
 func (message *Message) AddTitle(title string) *Message {
 	message.title = title
 	return message
@@ -108,8 +108,8 @@ func (message *Message) AddURL(url string) *Message {
 }
 
 // AddURLTitle can be used to add a url title. The url title is limited to a
-// maximum length of MaxSuppURLTitle, and will be verified before sending.
-// TODO: Verify that the length is less than MaxSuppURLTitle.
+// maximum length of MaxSuppURLTitleLen, and will be verified before sending.
+// TODO: Verify that the length is less than MaxSuppURLTitleLen.
 func (message *Message) AddURLTitle(title string) *Message {
 	message.urlTitle = title
 	return message
