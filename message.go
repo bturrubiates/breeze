@@ -1,6 +1,7 @@
 package breeze
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -50,6 +51,55 @@ const (
 	// defined by the Pushover API.
 	MaxSuppURLLen = 512
 )
+
+const (
+	// ErrMessageBlank indicates that the message was blank. The Pushover API
+	// requires that the message have content.
+	ErrMessageBlank = -(1 + iota)
+
+	// ErrMessageTooLong indicates the message was longer than MaxMessageLen.
+	ErrMessageTooLong
+
+	// ErrTitleTooLong indicates the message title was longer than MaxTitleLen.
+	ErrTitleTooLong
+
+	// ErrSuppURLTitleTooLong indicates that the supplementary url title was
+	// longer than MaxSuppURLTitleLen.
+	ErrSuppURLTitleTooLong
+
+	// ErrSuppURLTooLong indicates that the supplementary url was longer than
+	// MaxSuppURLLen.
+	ErrSuppURLTooLong
+
+	// ErrInvalidPriority indicates that the priority is invalid.
+	ErrInvalidPriority
+
+	// ErrMissingParameter indicates that some parameter is missing. This is often
+	// due to retry or expire missing on a priority message, or url missing but
+	// url title is given.
+	ErrMissingParameter
+
+	// ErrRetryTimeTooShort indicates that the retry time is less than
+	// MinRetryTime
+	ErrRetryTimeTooShort
+
+	// ErrExpireTimeTooLong indicates that the expire time is longer than
+	// MaxExpireTime.
+	ErrExpireTimeTooLong
+
+	// ErrNoDevice indicates that a device validation failed.
+	ErrNoDevice
+)
+
+// ValueError represents some error in the parameters passed in by the user.
+type ValueError struct {
+	What int
+	Why  string
+}
+
+func (errValue *ValueError) Error() string {
+	return fmt.Sprintf("%d: %s", errValue.What, errValue.Why)
+}
 
 // Message represents the message being sent to the push receiver. Only the
 // "Message" field is required. If a device is given, it will be validated.
