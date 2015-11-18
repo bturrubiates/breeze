@@ -208,7 +208,6 @@ func (message *Message) validateMessage() (bool, error) {
 
 // AddTitle can be used to add a title to a message. The title is limited to a
 // maximum length of MaxTitleLen, and will be verified before sending.
-// TODO: Verify that the length is less than MaxTitleLen.
 func (message *Message) AddTitle(title string) *Message {
 	message.title = title
 	return message
@@ -216,7 +215,6 @@ func (message *Message) AddTitle(title string) *Message {
 
 // AddURL can be used to add a URL to a message. The URL is limited to a maximum
 // length of MaxSuppURLLen, and will be verified before sending.
-// TODO: Verify that the length is less than MaxSuppURLLen.
 func (message *Message) AddURL(url string) *Message {
 	message.url = url
 	return message
@@ -224,7 +222,6 @@ func (message *Message) AddURL(url string) *Message {
 
 // AddURLTitle can be used to add a url title. The url title is limited to a
 // maximum length of MaxSuppURLTitleLen, and will be verified before sending.
-// TODO: Verify that the length is less than MaxSuppURLTitleLen.
 func (message *Message) AddURLTitle(title string) *Message {
 	message.urlTitle = title
 	return message
@@ -233,7 +230,6 @@ func (message *Message) AddURLTitle(title string) *Message {
 // AddPriority can be used to associate a priority with the message. The
 // priority is limited to Lowest, Low, Normal, High, and Emergency. The default
 // is Normal. If Emergency is set, then retry and expire must also be provided.
-// TODO: Verify that retry and expire are provided.
 func (message *Message) AddPriority(priority int) *Message {
 	message.priority = priority
 	return message
@@ -243,7 +239,6 @@ func (message *Message) AddPriority(priority int) *Message {
 // important when the message is sent with Emergency priority. The retry time
 // dictates how many seconds the API will wait before re-pushing the message.
 // The value is expressed in seconds. This value must be at least 30 seconds.
-// TODO: Verify retry time is less than 30 seconds.
 func (message *Message) AddRetry(retry int) *Message {
 	message.retry = retry
 	return message
@@ -253,7 +248,6 @@ func (message *Message) AddRetry(retry int) *Message {
 // important when the message is sent with Emergency priority. The expire time
 // determines the length of the window in which the API will attempt retries.
 // The value is expressed in seconds. This value must be at most 86,400 seconds.
-// TODO: Verify expire time is less than 86,400.
 func (message *Message) AddExpire(expire int) *Message {
 	message.expire = expire
 	return message
