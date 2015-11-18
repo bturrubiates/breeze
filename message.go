@@ -1,6 +1,7 @@
 package breeze
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -29,8 +30,12 @@ const (
 )
 
 const (
-	minRetryTime  = 30
-	maxExpireTime = 86400
+	// MinRetryTime defines the minimum retry time as defined by the Pushover API.
+	MinRetryTime = 30
+
+	// MaxExpireTime defines the length of the time window which retries are
+	// attempted in.
+	MaxExpireTime = 86400
 )
 
 const (
@@ -50,6 +55,55 @@ const (
 	// defined by the Pushover API.
 	MaxSuppURLLen = 512
 )
+
+const (
+	// ErrMessageBlank indicates that the message was blank. The Pushover API
+	// requires that the message have content.
+	ErrMessageBlank = -(1 + iota)
+
+	// ErrMessageTooLong indicates the message was longer than MaxMessageLen.
+	ErrMessageTooLong
+
+	// ErrTitleTooLong indicates the message title was longer than MaxTitleLen.
+	ErrTitleTooLong
+
+	// ErrSuppURLTitleTooLong indicates that the supplementary url title was
+	// longer than MaxSuppURLTitleLen.
+	ErrSuppURLTitleTooLong
+
+	// ErrSuppURLTooLong indicates that the supplementary url was longer than
+	// MaxSuppURLLen.
+	ErrSuppURLTooLong
+
+	// ErrInvalidPriority indicates that the priority is invalid.
+	ErrInvalidPriority
+
+	// ErrMissingParameter indicates that some parameter is missing. This is often
+	// due to retry or expire missing on a priority message, or url missing but
+	// url title is given.
+	ErrMissingParameter
+
+	// ErrRetryTimeTooShort indicates that the retry time is less than
+	// MinRetryTime
+	ErrRetryTimeTooShort
+
+	// ErrExpireTimeTooLong indicates that the expire time is longer than
+	// MaxExpireTime.
+	ErrExpireTimeTooLong
+
+	// ErrNoDevice indicates that a device validation failed.
+	ErrNoDevice
+)
+
+// ValueError represents some error in the parameters passed in by the user.
+type ValueError struct {
+	What int
+	Why  string
+}
+
+func (errValue *ValueError) Error() string {
+	return fmt.Sprintf("%d: %s", errValue.What, errValue.Why)
+}
 
 // Message represents the message being sent to the push receiver. Only the
 // "Message" field is required. If a device is given, it will be validated.
@@ -94,6 +148,62 @@ func (message *Message) addValues(values url.Values) {
 	if message.device != "" {
 		values.Add("device", message.device)
 	}
+}
+
+func (message *Message) validateMessage() (bool, error) {
+	if mlen := len(message.message); mlen == 0 {
+		return false, &ValueError{ErrMessageBlank, "message can't be empty."}
+	}
+
+	if mlen := len(message.message); mlen > MaxMessageLen {
+		msg := fmt.Sprintf("length exceeded by %d.", mlen-MaxMessageLen)
+		return false, &ValueError{ErrMessageTooLong, msg}
+	}
+
+	if tlen := len(message.title); tlen > MaxTitleLen {
+		msg := fmt.Sprintf("length exceeded by %d.", tlen-MaxTitleLen)
+		return false, &ValueError{ErrTitleTooLong, msg}
+	}
+
+	if ulen := len(message.url); ulen > MaxSuppURLLen {
+		msg := fmt.Sprintf("length exceeded by %d.", ulen-MaxSuppURLLen)
+		return false, &ValueError{ErrSuppURLTooLong, msg}
+	}
+
+	if message.urlTitle != "" && message.url == "" {
+		msg := "need a url to give it a title."
+		return false, &ValueError{ErrMissingParameter, msg}
+	}
+
+	if utlen := len(message.urlTitle); utlen > MaxSuppURLTitleLen {
+		msg := fmt.Sprintf("length exceeded by %d.", utlen-MaxSuppURLTitleLen)
+		return false, &ValueError{ErrSuppURLTitleTooLong, msg}
+	}
+
+	if message.priority < Lowest || message.priority > Emergency {
+		return false, &ValueError{ErrInvalidPriority, "invalid priority."}
+	}
+
+	if message.priority == Emergency {
+		if message.retry == 0 || message.expire == 0 {
+			msg := "retry and expire must be provided if priority is emergency."
+			return false, &ValueError{ErrMissingParameter, msg}
+		}
+
+		if message.retry < MinRetryTime {
+			msg := fmt.Sprintf("retry time below min by %d.",
+				MinRetryTime-message.retry)
+			return false, &ValueError{ErrRetryTimeTooShort, msg}
+		}
+
+		if message.expire > MaxExpireTime {
+			msg := fmt.Sprintf("expire time exceeded by %d.",
+				message.expire-MaxExpireTime)
+			return false, &ValueError{ErrExpireTimeTooLong, msg}
+		}
+	}
+
+	return true, nil
 }
 
 // AddTitle can be used to add a title to a message. The title is limited to a
