@@ -30,8 +30,12 @@ const (
 )
 
 const (
-	minRetryTime  = 30
-	maxExpireTime = 86400
+	// MinRetryTime defines the minimum retry time as defined by the Pushover API.
+	MinRetryTime = 30
+
+	// MaxExpireTime defines the length of the time window which retries are
+	// attempted in.
+	MaxExpireTime = 86400
 )
 
 const (
