@@ -150,6 +150,62 @@ func (message *Message) addValues(values url.Values) {
 	}
 }
 
+func (message *Message) validateMessage() (bool, error) {
+	if mlen := len(message.message); mlen == 0 {
+		return false, &ValueError{ErrMessageBlank, "message can't be empty."}
+	}
+
+	if mlen := len(message.message); mlen > MaxMessageLen {
+		msg := fmt.Sprintf("length exceeded by %d.", mlen-MaxMessageLen)
+		return false, &ValueError{ErrMessageTooLong, msg}
+	}
+
+	if tlen := len(message.title); tlen > MaxTitleLen {
+		msg := fmt.Sprintf("length exceeded by %d.", tlen-MaxTitleLen)
+		return false, &ValueError{ErrTitleTooLong, msg}
+	}
+
+	if ulen := len(message.url); ulen > MaxSuppURLLen {
+		msg := fmt.Sprintf("length exceeded by %d.", ulen-MaxSuppURLLen)
+		return false, &ValueError{ErrSuppURLTooLong, msg}
+	}
+
+	if message.urlTitle != "" && message.url == "" {
+		msg := "need a url to give it a title."
+		return false, &ValueError{ErrMissingParameter, msg}
+	}
+
+	if utlen := len(message.urlTitle); utlen > MaxSuppURLTitleLen {
+		msg := fmt.Sprintf("length exceeded by %d.", utlen-MaxSuppURLTitleLen)
+		return false, &ValueError{ErrSuppURLTitleTooLong, msg}
+	}
+
+	if message.priority < Lowest || message.priority > Emergency {
+		return false, &ValueError{ErrInvalidPriority, "invalid priority."}
+	}
+
+	if message.priority == Emergency {
+		if message.retry == 0 || message.expire == 0 {
+			msg := "retry and expire must be provided if priority is emergency."
+			return false, &ValueError{ErrMissingParameter, msg}
+		}
+
+		if message.retry < MinRetryTime {
+			msg := fmt.Sprintf("retry time below min by %d.",
+				MinRetryTime-message.retry)
+			return false, &ValueError{ErrRetryTimeTooShort, msg}
+		}
+
+		if message.expire > MaxExpireTime {
+			msg := fmt.Sprintf("expire time exceeded by %d.",
+				message.expire-MaxExpireTime)
+			return false, &ValueError{ErrExpireTimeTooLong, msg}
+		}
+	}
+
+	return true, nil
+}
+
 // AddTitle can be used to add a title to a message. The title is limited to a
 // maximum length of MaxTitleLen, and will be verified before sending.
 // TODO: Verify that the length is less than MaxTitleLen.
