@@ -21,7 +21,7 @@ type PushContext struct {
 	userKey  string
 }
 
-// Reponse represents the response received from the Pushover API. If the
+// Response represents the response received from the Pushover API. If the
 // "Status" field is set to 1, then it was successful. If the status field is
 // not 1, then the "Errors" field will contain a list of errors received from
 // the API. The devices are gathered when requesting validation of a device.
