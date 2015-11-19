@@ -91,6 +91,9 @@ const (
 	// MaxExpireTime.
 	ErrExpireTimeTooLong
 
+	// ErrNoSound indicates that the requested sound does not exist.
+	ErrNoSound
+
 	// ErrNoDevice indicates that a device validation failed.
 	ErrNoDevice
 )
@@ -150,7 +153,7 @@ func (message *Message) addValues(values url.Values) {
 	}
 }
 
-func (message *Message) validateMessage() error {
+func (message *Message) validateMessage(pushContext *PushContext) error {
 	if mlen := len(message.message); mlen == 0 {
 		return &ValueError{ErrMessageBlank, "message can't be empty."}
 	}
@@ -200,6 +203,22 @@ func (message *Message) validateMessage() error {
 			msg := fmt.Sprintf("expire time exceeded by %d.",
 				message.expire-MaxExpireTime)
 			return &ValueError{ErrExpireTimeTooLong, msg}
+		}
+	}
+
+	if message.sound != "" {
+		ok := pushContext.IsValidSound(message.sound)
+		if !ok {
+			msg := "requested sound not supported, check supported sounds property."
+			return &ValueError{ErrNoSound, msg}
+		}
+	}
+
+	if message.device != "" {
+		ok := pushContext.IsValidDevice(message.device)
+		if !ok {
+			msg := "requested device not supported. check supported devices property."
+			return &ValueError{ErrNoDevice, msg}
 		}
 	}
 
