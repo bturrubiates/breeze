@@ -24,14 +24,13 @@ func TestMain(m *testing.M) {
 }
 
 func expectError(t *testing.T, message *Message, what int) {
-	ok, err := pc.Push(message)
-	if ok {
+	err := pc.Push(message)
+	if err == nil {
 		t.Errorf("Push should have failed.")
 	}
 
 	switch err := err.(type) {
 	case *ValueError:
-		fmt.Println(err)
 		if err.What != what {
 			t.Errorf("Expected %d, but got %d", what, err.What)
 		}
@@ -41,8 +40,8 @@ func expectError(t *testing.T, message *Message, what int) {
 }
 
 func expectOK(t *testing.T, message *Message) {
-	ok, err := pc.Push(message)
-	if !ok {
+	err := pc.Push(message)
+	if err != nil {
 		t.Errorf("Not ok: %s", err.Error())
 	}
 }

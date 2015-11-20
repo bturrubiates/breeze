@@ -47,7 +47,7 @@ func (pushError *PushError) Error() string {
 		strings.Join(errors[:], ","))
 }
 
-func (pushContext *PushContext) push(url string, values url.Values) (bool, error) {
+func (pushContext *PushContext) push(url string, values url.Values) error {
 	response, err := http.PostForm(url, values)
 	if err != nil {
 		fmt.Println("Handle the error case.")
@@ -62,10 +62,10 @@ func (pushContext *PushContext) push(url string, values url.Values) (bool, error
 	var success = responseData.Status == 1
 
 	if !success {
-		return success, &PushError{RequestResponse: responseData}
+		return &PushError{RequestResponse: responseData}
 	}
 
-	return success, nil
+	return nil
 }
 
 func (pushContext *PushContext) addValues(values url.Values) {
@@ -75,18 +75,18 @@ func (pushContext *PushContext) addValues(values url.Values) {
 
 // Push will use the Pushover API to push the given message using the given push
 // context.
-func (pushContext *PushContext) Push(message *Message) (bool, error) {
+func (pushContext *PushContext) Push(message *Message) error {
 	parameters := url.Values{}
 
-	ok, err := message.validateMessage()
-	if !ok {
-		return ok, err
+	err := message.validateMessage()
+	if err != nil {
+		return err
 	}
 
 	if message.device != "" {
-		ok, err := pushContext.validatePushContext(message.device)
-		if !ok {
-			return ok, err
+		err := pushContext.validatePushContext(message.device)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -96,7 +96,7 @@ func (pushContext *PushContext) Push(message *Message) (bool, error) {
 	return pushContext.push(pushURL, parameters)
 }
 
-func (pushContext *PushContext) validatePushContext(device string) (bool, error) {
+func (pushContext *PushContext) validatePushContext(device string) error {
 	parameters := url.Values{}
 
 	pushContext.addValues(parameters)
@@ -116,8 +116,8 @@ func NewPushContext(appToken string, userKey string) (*PushContext, error) {
 	pushContext.appToken = appToken
 	pushContext.userKey = userKey
 
-	ok, err := pushContext.validatePushContext("")
-	if !ok {
+	err := pushContext.validatePushContext("")
+	if err != nil {
 		return nil, err
 	}
 
