@@ -18,20 +18,20 @@ func TestMain(m *testing.M) {
 	pc, err = NewPushContext(appToken, userKey)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	os.Exit(m.Run())
 }
 
 func expectError(t *testing.T, message *Message, what int) {
-	ok, err := pc.Push(message)
-	if ok {
+	_, err := pc.Push(message)
+	if err == nil {
 		t.Errorf("Push should have failed.")
 	}
 
 	switch err := err.(type) {
 	case *ValueError:
-		fmt.Println(err)
 		if err.What != what {
 			t.Errorf("Expected %d, but got %d", what, err.What)
 		}
@@ -41,8 +41,8 @@ func expectError(t *testing.T, message *Message, what int) {
 }
 
 func expectOK(t *testing.T, message *Message) {
-	ok, err := pc.Push(message)
-	if !ok {
+	_, err := pc.Push(message)
+	if err != nil {
 		t.Errorf("Not ok: %s", err.Error())
 	}
 }
@@ -126,4 +126,31 @@ func TestExpireTooLong(t *testing.T) {
 		AddRetry(MinRetryTime + 1).
 		AddExpire(MaxExpireTime + 1)
 	expectError(t, msg, ErrExpireTimeTooLong)
+}
+
+func TestInvalidDevice(t *testing.T) {
+	msg := NewMessage("a").AddDevice("qwerty")
+	expectError(t, msg, ErrNoDevice)
+}
+
+func TestInvalidSound(t *testing.T) {
+	msg := NewMessage("a").AddSound("qwerty")
+	expectError(t, msg, ErrNoSound)
+}
+
+func TestIsValidSound(t *testing.T) {
+	ok := pc.IsValidSound("magic")
+	if !ok {
+		t.Error("magic IS a valid sound!")
+	}
+
+	ok = pc.IsValidSound("qwerty")
+	if ok {
+		t.Error("qwerty is NOT a valid sound!")
+	}
+
+	ok = pc.IsValidSound("Magic")
+	if ok {
+		t.Error("Magic and magic are not the same!")
+	}
 }

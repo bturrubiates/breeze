@@ -91,6 +91,9 @@ const (
 	// MaxExpireTime.
 	ErrExpireTimeTooLong
 
+	// ErrNoSound indicates that the requested sound does not exist.
+	ErrNoSound
+
 	// ErrNoDevice indicates that a device validation failed.
 	ErrNoDevice
 )
@@ -150,60 +153,76 @@ func (message *Message) addValues(values url.Values) {
 	}
 }
 
-func (message *Message) validateMessage() (bool, error) {
+func (message *Message) validateMessage(pushContext *PushContext) error {
 	if mlen := len(message.message); mlen == 0 {
-		return false, &ValueError{ErrMessageBlank, "message can't be empty."}
+		return &ValueError{ErrMessageBlank, "message can't be empty."}
 	}
 
 	if mlen := len(message.message); mlen > MaxMessageLen {
 		msg := fmt.Sprintf("length exceeded by %d.", mlen-MaxMessageLen)
-		return false, &ValueError{ErrMessageTooLong, msg}
+		return &ValueError{ErrMessageTooLong, msg}
 	}
 
 	if tlen := len(message.title); tlen > MaxTitleLen {
 		msg := fmt.Sprintf("length exceeded by %d.", tlen-MaxTitleLen)
-		return false, &ValueError{ErrTitleTooLong, msg}
+		return &ValueError{ErrTitleTooLong, msg}
 	}
 
 	if ulen := len(message.url); ulen > MaxSuppURLLen {
 		msg := fmt.Sprintf("length exceeded by %d.", ulen-MaxSuppURLLen)
-		return false, &ValueError{ErrSuppURLTooLong, msg}
+		return &ValueError{ErrSuppURLTooLong, msg}
 	}
 
 	if message.urlTitle != "" && message.url == "" {
 		msg := "need a url to give it a title."
-		return false, &ValueError{ErrMissingParameter, msg}
+		return &ValueError{ErrMissingParameter, msg}
 	}
 
 	if utlen := len(message.urlTitle); utlen > MaxSuppURLTitleLen {
 		msg := fmt.Sprintf("length exceeded by %d.", utlen-MaxSuppURLTitleLen)
-		return false, &ValueError{ErrSuppURLTitleTooLong, msg}
+		return &ValueError{ErrSuppURLTitleTooLong, msg}
 	}
 
 	if message.priority < Lowest || message.priority > Emergency {
-		return false, &ValueError{ErrInvalidPriority, "invalid priority."}
+		return &ValueError{ErrInvalidPriority, "invalid priority."}
 	}
 
 	if message.priority == Emergency {
 		if message.retry == 0 || message.expire == 0 {
 			msg := "retry and expire must be provided if priority is emergency."
-			return false, &ValueError{ErrMissingParameter, msg}
+			return &ValueError{ErrMissingParameter, msg}
 		}
 
 		if message.retry < MinRetryTime {
 			msg := fmt.Sprintf("retry time below min by %d.",
 				MinRetryTime-message.retry)
-			return false, &ValueError{ErrRetryTimeTooShort, msg}
+			return &ValueError{ErrRetryTimeTooShort, msg}
 		}
 
 		if message.expire > MaxExpireTime {
 			msg := fmt.Sprintf("expire time exceeded by %d.",
 				message.expire-MaxExpireTime)
-			return false, &ValueError{ErrExpireTimeTooLong, msg}
+			return &ValueError{ErrExpireTimeTooLong, msg}
 		}
 	}
 
-	return true, nil
+	if message.sound != "" {
+		ok := pushContext.IsValidSound(message.sound)
+		if !ok {
+			msg := "requested sound not supported, check supported sounds property."
+			return &ValueError{ErrNoSound, msg}
+		}
+	}
+
+	if message.device != "" {
+		ok := pushContext.IsValidDevice(message.device)
+		if !ok {
+			msg := "requested device not supported. check supported devices property."
+			return &ValueError{ErrNoDevice, msg}
+		}
+	}
+
+	return nil
 }
 
 // AddTitle can be used to add a title to a message. The title is limited to a
